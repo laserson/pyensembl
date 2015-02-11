@@ -14,15 +14,12 @@ from database import Database
 from exon import Exon
 from gene import Gene
 from gtf import GTF
-from locus import normalize_chromosome, normalize_strand
 from reference_transcripts import ReferenceTranscripts
 from release_info import check_release_number, MAX_ENSEMBL_RELEASE
 from transcript import Transcript
 from url_templates import ENSEMBL_FTP_SERVER
 
 import datacache
-import numpy as np
-import pandas as pd
 
 
 class EnsemblRelease(object):
@@ -63,7 +60,6 @@ class EnsemblRelease(object):
         self.gtf.clear_cache()
         self.reference.clear_cache()
         self._delete_cached_files()
-
 
     def all_feature_values(
             self,
@@ -119,6 +115,14 @@ class EnsemblRelease(object):
                     type(results))
             return results
         return cached_object(pickle_path, compute_fn=run_query)
+
+    def download_annotations(self):
+        if self.db.connection_if_exists():
+            print "Data for release %s is already downloaded" % self.release
+            return
+        self.db.create_database()
+        print "Data has for release %s has been downloaded" % self.release
+        return
 
     def genes_at_locus(self, contig, position, end=None, strand=None):
         gene_ids = self.gene_ids_at_locus(
